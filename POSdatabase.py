@@ -343,7 +343,6 @@ def total_quantity_prod(prod_id):
         return tot_qty
 
 
-
 def tot_sales_prod(prod_id):
     db = sqlite3.connect("pos.db")
     db.execute("PRAGMA foreign_keys = 1")

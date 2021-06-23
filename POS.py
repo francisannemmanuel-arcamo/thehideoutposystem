@@ -51,6 +51,7 @@ class LogIn:
                            font=("Calibri", 15, "bold"), bd=0, bg="black", )
         login_btn.place(x=100, y=430, width=150, height=40)
 
+        self.main_window.protocol("WM_DELETE_WINDOW", self.exit_handler)
         self.main_window.mainloop()
 
     def login(self):
@@ -70,6 +71,12 @@ class LogIn:
             self.userinput.config(highlightbackground='red', highlightthickness=2)
             self.passinput.config(highlightbackground='red', highlightthickness=2)
             messagebox.showerror('Log-in Error', 'Login failed. Please provide correct details')
+
+    def exit_handler(self):
+        if messagebox.askyesno("Exit", "Do you want to exit?"):
+            self.main_window.destroy()
+        else:
+            return
 
 
 class ManagerMain:
@@ -171,6 +178,7 @@ class ManagerMain:
         self.scroll_x_prod = Scrollbar(self.prod_list_frame, orient=HORIZONTAL)
         self.scroll_y_prod = Scrollbar(self.prod_list_frame, orient=VERTICAL)
 
+        self.frame.protocol("WM_DELETE_WINDOW", self.exit_handler)
         self.frame.mainloop()
 
     def hide_widgets(self):
@@ -477,6 +485,12 @@ class ManagerMain:
             self.frame.destroy()
             LogIn()
 
+    def exit_handler(self):
+        if messagebox.askyesno("Exit", "Do you want to exit?"):
+            self.frame.destroy()
+        else:
+            return
+
 
 class SalesRegister:
     def __init__(self, c_uname):
@@ -537,14 +551,16 @@ class SalesRegister:
         prod_id_ent = Entry(sales_frame, textvariable=self.prod_id, highlightthickness=1, highlightbackground="black",
                             font=("Calibri", 11, "bold"))
         prod_id_ent.place(x=125, y=40, height=20, width=375)
-        add_prod_btn = Button(sales_frame, command=self.add_prod, text="add", bg="black", fg="white",
-                              activebackground="black", activeforeground="white")
+        add_img = PhotoImage(file=r"images\add.png").subsample(2, 2)
+        add_prod_btn = Button(sales_frame, command=self.add_prod, image=add_img, relief=FLAT)
+        add_prod_btn.img = add_img
         add_prod_btn.place(x=505, y=40, height=20, width=40)
-        remove_prod_btn = Button(sales_frame, command=self.remove_prod, text="remove", bg="black", fg="white",
-                                 activebackground="black", activeforeground="white")
+        remove_img = PhotoImage(file=r"images\remove.png").subsample(2, 2)
+        remove_prod_btn = Button(sales_frame, command=self.remove_prod, image=remove_img, relief=FLAT)
+        remove_prod_btn.img = remove_img
         remove_prod_btn.place(x=550, y=40, height=20, width=40)
 
-        trans_reg_frame = Frame(sales_frame, bg="green")
+        trans_reg_frame = Frame(sales_frame, bg="white", highlightbackground="black", highlightthickness=2)
         trans_reg_frame.place(x=10, y=70, width=1030, height=450)
 
         reg_y = Scrollbar(trans_reg_frame, orient=VERTICAL)
@@ -631,15 +647,15 @@ class SalesRegister:
 
         search_lbl = Label(feature_frame, bg="white", fg="#38b6ff", font=("Blinker", 15, "bold"),
                            text="LIST OF PRODUCTS")
-        search_lbl.place(x=0, y=245, height=25, width=295)
+        search_lbl.place(x=0, y=255, height=25, width=295)
 
         self.prod_name_search = StringVar()
-        srch_prod_img = PhotoImage(file=r"images\search.png").subsample(2, 2)
-        lbl_srch_name = Label(feature_frame, image=srch_prod_img, text="  Name", bg="#38b6ff", fg="white",
+        srch_prod_img = PhotoImage(file=r"images\blacksearch.png").subsample(2, 2)
+        lbl_srch_name = Label(feature_frame, image=srch_prod_img, text="  Name", bg="#0a100d", fg="white",
                               font=("Bebas Neue", 14), anchor='w', compound='left')
         lbl_srch_name.place(x=0, y=295, width=75, height=25)
         lbl_srch_name.img = srch_prod_img
-        search_prod_ent = Entry(feature_frame, highlightthickness=1, highlightbackground="#38b6ff",
+        search_prod_ent = Entry(feature_frame, highlightthickness=1, highlightbackground="#0a100d",
                                 font=("Calibri", 13, "bold"), textvariable=self.prod_name_search)
         search_prod_ent.place(width=215, height=25, x=75, y=295)
         self.prod_name_search.trace("w", lambda name, index, mode,
@@ -665,6 +681,7 @@ class SalesRegister:
         self.search_prod()
 
         self.POS_window.protocol("WM_DELETE_WINDOW", self.exit_handler)
+        self.conf_img = PhotoImage(file=r"images\confirm.png").subsample(2, 2)
 
     def refresh(self):
         self.prod_id.set("")
@@ -707,11 +724,11 @@ class SalesRegister:
     def add_prod_dbclick(self, ev):
         item = self.prod_list.focus()
         contents = self.prod_list.item(item)
-        prod_det = POSdatabase.search_prod_db_by_id(contents['values'][0])
         if self.trans_id.get() == "":
             messagebox.showerror("Transaction Error", "Add a new transaction first!")
             return
         else:
+            prod_det = POSdatabase.search_prod_db_by_id(contents['values'][0])
             POSdatabase.add_prod_to_trans(self.trans_id.get(), prod_det[0], prod_det[3], 1, 0)
             self.refresh()
 
@@ -736,7 +753,7 @@ class SalesRegister:
         else:
             self.edit_quant_window = Toplevel()
             self.edit_quant_window.title("Edit Quantity")
-            self.edit_quant_window.geometry("500x270+425+210")
+            self.edit_quant_window.geometry("420x210+465+240")
             self.edit_quant_window.resizable(False, False)
             self.edit_quant_window.config(bg="white")
             self.edit_quant_window.iconbitmap(r"images\logo.ico")
@@ -747,30 +764,33 @@ class SalesRegister:
 
             label_name = Label(self.edit_quant_window, text="Product Name: ", font=("Bebas Neue", 17), bg="black",
                                fg="white")
-            label_name.place(x=10, y=10, width=150, height=40)
-            prod_name = Label(self.edit_quant_window, text=prod_sel[1], font=("Bebas Neue", 16), bg="white", fg="black",
-                              anchor="w")
-            prod_name.place(x=170, y=10, height=40, width=320)
+            label_name.place(x=10, y=10, width=150, height=30)
+            prod_name = Entry(self.edit_quant_window, font=("Bebas Neue", 16), bg="white", fg="black")
+            prod_name.insert(0, prod_sel[1])
+            prod_name.place(x=160, y=10, height=30, width=250)
+            prod_name.config(state=DISABLED)
             label_price = Label(self.edit_quant_window, text="Price: ", font=("Bebas Neue", 17), bg="black", fg="white")
-            label_price.place(x=10, y=60, width=150, height=40)
-            prod_price = Label(self.edit_quant_window, text=self.price_prod.get(), font=("Bebas Neue", 16), bg="white",
-                               fg="black", anchor='w')
-            prod_price.place(x=170, y=60, height=40, width=320)
+            label_price.place(x=10, y=50, width=150, height=30)
+            prod_price = Entry(self.edit_quant_window, font=("Bebas Neue", 16), bg="white", fg="black",
+                               textvariable=self.price_prod)
+            prod_price.place(x=160, y=50, height=30, width=250)
+            prod_price.config(state=DISABLED)
             label_quant = Label(self.edit_quant_window, text="Quantity: ", font=("Bebas Neue", 17), bg="black",
                                 fg="white")
-            label_quant.place(x=10, y=110, width=150, height=40)
+            label_quant.place(x=10, y=90, width=150, height=30)
             prod_qty = Entry(self.edit_quant_window, textvariable=self.edit_quant, highlightbackground="black",
                              highlightthickness=2, font=("Bebas Neue", 16))
-            prod_qty.place(x=170, y=110, height=40, width=150)
+            prod_qty.place(x=160, y=90, height=30, width=250)
             label_subtotal = Label(self.edit_quant_window, text="Subtotal: ", font=("Bebas Neue", 17), bg="black",
                                    fg="white")
-            label_subtotal.place(x=10, y=160, width=150, height=40)
+            label_subtotal.place(x=10, y=130, width=150, height=30)
             self.subtotal = Label(self.edit_quant_window, anchor='w', font=("Bebas Neue", 17), bg="white", fg="black",
                                   text=self.price_prod.get() * self.edit_quant.get())
-            self.subtotal.place(x=170, y=160, height=40, width=320)
+            self.subtotal.place(x=160, y=130, height=30, width=250)
 
-            edit_quantity_btn = Button(self.edit_quant_window, command=self.edit_quantity)
-            edit_quantity_btn.place(x=390, y=220, width=100, height=40)
+            edit_quantity_btn = Button(self.edit_quant_window, command=self.edit_quantity, image=self.conf_img)
+            edit_quantity_btn.img = self.conf_img
+            edit_quantity_btn.place(x=310, y=170, width=100, height=30)
 
             self.edit_quant.trace("w", lambda name, index, mode, sv=self.edit_quant: self.edit_quant_auto_subtotal())
 
@@ -823,7 +843,7 @@ class SalesRegister:
         else:
             self.add_disc_window = Toplevel()
             self.add_disc_window.title("Add Discount")
-            self.add_disc_window.geometry("350x210+500+240")
+            self.add_disc_window.geometry("350x180+500+240")
             self.add_disc_window.resizable(False, False)
             self.add_disc_window.config(bg="white")
             self.add_disc_window.iconbitmap(r"images\logo.ico")
@@ -850,8 +870,9 @@ class SalesRegister:
             disc_perc.place(x=110, y=65, width=230, height=30)
             disc_amt.place(x=110, y=100, width=230, height=30)
 
-            add_disc_btn = Button(self.add_disc_window, command=self.add_discount)
-            add_disc_btn.place(width=100, height=30, x=240, y=170)
+            add_disc_btn = Button(self.add_disc_window, command=self.add_discount, image=self.conf_img)
+            add_disc_btn.img = self.conf_img
+            add_disc_btn.place(width=100, height=30, x=240, y=140)
 
             self.disc_perc.trace("w", lambda name, index, mode, sv=self.disc_perc: self.add_disc_auto_amt())
 
@@ -903,7 +924,7 @@ class SalesRegister:
         else:
             self.set_pay_window = Toplevel()
             self.set_pay_window.title("Settle Payment")
-            self.set_pay_window.geometry("350x210+500+240")
+            self.set_pay_window.geometry("350x170+500+260")
             self.set_pay_window.resizable(False, False)
             self.set_pay_window.config(bg="white")
             self.set_pay_window.iconbitmap(r"images\logo.ico")
@@ -927,8 +948,10 @@ class SalesRegister:
             self.change.place(x=110, y=90, width=230, height=30)
             self.change_amt.set((self.amount_paid.get()-self.total_cost.get()))
             self.change.config(state=DISABLED)
-            conf_pay = Button(self.set_pay_window, command=self.settle_payment)
-            conf_pay.place(width=100, height=40, x=240, y=150)
+
+            conf_pay = Button(self.set_pay_window, command=self.settle_payment, image=self.conf_img)
+            conf_pay.img = self.conf_img
+            conf_pay.place(width=100, height=30, x=240, y=130)
 
             self.amount_paid.trace("w", lambda name, index, mode, sv=self.amount_paid: self.set_pay_auto_change())
 
@@ -991,5 +1014,4 @@ class SalesRegister:
         self.POS_window.destroy()
 
 
-# LogIn()
-ManagerMain()
+LogIn()
