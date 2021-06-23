@@ -54,6 +54,11 @@ class UserSettingsFrame:
         user_list_label = Label(user_view_table_frame, text="USER LIST", font=("Blinker", 15, "underline", "bold"),
                                 bg="white")
         user_list_label.place(x=10, y=5, height=40)
+        srch_icon = PhotoImage(file=r"images\blacksearch.png").subsample(2, 2)
+        srch_cuname_lbl = Label(user_view_table_frame, bg="#0A100d", fg="white", font=("Bebas Neue", 14),
+                                 image=srch_icon, text=" USERNAME", compound="left", anchor="w")
+        srch_cuname_lbl.img = srch_icon
+        srch_cuname_lbl.place(width=100, x=210, height=30, y=40)
         user_search_entry = Entry(user_view_table_frame, textvariable=self.search_user, font=("Blinker", 15),
                                   highlightbackground="black", highlightthickness=2)
         user_search_entry.place(x=310, y=40, height=30, width=200)
@@ -294,7 +299,7 @@ class UserSettingsFrame:
         else:
             db = sqlite3.connect("pos.db")
             cursor = db.cursor()
-            cursor.execute("SELECT * FROM CASHIER where username='admin'")
+            cursor.execute("SELECT * FROM CASHIER where c_username='admin'")
             user = cursor.fetchone()
             if user[1] != self.admin_old_pass.get():
                 messagebox.showerror("Admin Change Password Error", "Wrong Password")
@@ -304,7 +309,7 @@ class UserSettingsFrame:
                 return
             else:
                 if messagebox.askyesno("Change Password", "Are you sure you want to modify your password?"):
-                    cursor.execute("UPDATE CASHIER SET password=? WHERE username=?", (self.admin_new_pass.get(),
+                    cursor.execute("UPDATE CASHIER SET c_pass=? WHERE c_username=?", (self.admin_new_pass.get(),
                                                                                       'admin'))
                     messagebox.showinfo("Success", "Password has been updated!")
                     self.clear_data()

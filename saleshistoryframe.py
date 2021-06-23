@@ -23,9 +23,6 @@ class SalesHistory:
         srch_transid_lbl.img = srch_icon
         trans_id = Entry(self.frame, highlightbackground="black", highlightthickness=2, font=("Blinker", 15, "bold"),
                          textvariable=self.trans_id)
-        srch_transdate_lbl = Label(self.frame, bg="#0A100d", fg="white", font=("Bebas Neue", 14),
-                                   image=srch_icon, text=" TR DATE", compound="left", anchor="w")
-        srch_transdate_lbl.img = srch_icon
         srch_prodid_lbl = Label(self.frame, bg="#0A100d", fg="white", font=("Bebas Neue", 14),
                                 image=srch_icon, text=" PROD ID", compound="left", anchor="w")
         srch_prodid_lbl.img = srch_icon
@@ -36,7 +33,6 @@ class SalesHistory:
         trans_id.place(height=33, width=160, y=6, x=80)
         srch_prodid_lbl.place(height=33, width=80, y=6, x=245)
         prod_id.place(height=33, width=160, y=6, x=325)
-        srch_transdate_lbl.place(height=33, width=90, y=6, x=490)
 
         heading_bg = ttk.Style()
         heading_bg.theme_use("clam")
@@ -77,4 +73,5 @@ class SalesHistory:
             for ent in sales:
                 trans_det = POSdatabase.trans_details(ent[0])[1]
                 prod_name = POSdatabase.search_prod_db_by_id(ent[1])[1]
-                self.sales_table.insert('', END, values=(ent[0], trans_det, ent[1], prod_name, ent[2], ent[3], ent[5]))
+                self.sales_table.insert('', END, values=(ent[0], trans_det, ent[1], prod_name, "{:.2f}".format(ent[2]),
+                                                         ent[3], "{:.2f}".format(ent[5])))

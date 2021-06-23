@@ -179,6 +179,7 @@ class ManagerMain:
         self.scroll_y_prod = Scrollbar(self.prod_list_frame, orient=VERTICAL)
 
         self.frame.protocol("WM_DELETE_WINDOW", self.exit_handler)
+        self.products()
         self.frame.mainloop()
 
     def hide_widgets(self):
@@ -263,6 +264,10 @@ class ManagerMain:
         self.add_prod_window.config(bg="white")
         self.add_prod_window.iconbitmap(r"images\logo.ico")
 
+        banner_img = PhotoImage(file=r"images\addprodbanner.png")
+        banner_add = Label(self.add_prod_window, image=banner_img)
+        banner_add.img = banner_img
+        banner_add.place(x=15, y=15, width=420, height=95)
         id_label = Label(self.add_prod_window, text="ID", font=("Bebas Neue", 17), bg="black", fg="white")
         id_label.place(x=15, y=125, width=90, height=40)
         prod_id_entry = Entry(self.add_prod_window, textvariable=self.product_id, highlightthickness=2,
@@ -313,18 +318,22 @@ class ManagerMain:
         else:
             try:
                 self.product_price.get()
-                if messagebox.askyesno("Confirmation", "Are you sure you want to add the product into the database?"):
-                    if POSdatabase.add_prod_db(self.product_id.get().upper(), self.product_name.get().title(),
-                                               self.product_categ.get(), self.product_price.get()):
-                        self.clear_data()
-                        messagebox.showinfo("Success", "Product added in database.")
-                        self.add_prod_window.destroy()
-                        self.display_prodsearchnamecateg()
-                        return
+                if self.product_price.get() > 0:
+                    if messagebox.askyesno("Confirmation", "Are you sure you want to add the product into the "
+                                                           "database?"):
+                        if POSdatabase.add_prod_db(self.product_id.get().upper(), self.product_name.get().title(),
+                                                   self.product_categ.get(), self.product_price.get()):
+                            self.clear_data()
+                            messagebox.showinfo("Success", "Product added in database.")
+                            self.add_prod_window.destroy()
+                            self.display_prodsearchnamecateg()
+                            return
+                        else:
+                            return
                     else:
                         return
                 else:
-                    return
+                    messagebox.showerror("Error", "The price must be greater than or equal to zero")
             except TclError:
                 messagebox.showerror("error", "please provide valid price")
 
@@ -352,6 +361,10 @@ class ManagerMain:
             self.edit_prod_window.config(bg="white")
             self.edit_prod_window.iconbitmap(r"images\logo.ico")
 
+            banner_img = PhotoImage(file=r"images\editprodbanner.png")
+            banner_edit = Label(self.edit_prod_window, image=banner_img)
+            banner_edit.img = banner_img
+            banner_edit.place(x=15, y=15, width=420, height=95)
             id_label = Label(self.edit_prod_window, text="ID", font=("Bebas Neue", 17), bg="black", fg="white")
             id_label.place(x=15, y=125, width=90, height=40)
             prod_id_entry = Entry(self.edit_prod_window, textvariable=self.product_id, highlightthickness=2,
@@ -405,18 +418,20 @@ class ManagerMain:
                 messagebox.showerror("Update Product Error", "Please fill out all fields")
                 return
             else:
-                if messagebox.askyesno("Update Product?", "Do you want to update the product details?"):
-                    if POSdatabase.update_product_db(self.prod_select[0], self.product_id.get().upper(),
-                                                     self.product_name.get().title(), self.product_categ.get(),
-                                                     self.product_price.get()):
-                        messagebox.showinfo("Success", "Information has been updated!")
-                        self.clear_data()
-                        self.edit_prod_window.destroy()
-                        self.display_prodsearchnamecateg()
-                        return
-                    else:
-                        return
+                if self.product_price.get() > 0:
+                    if messagebox.askyesno("Update Product?", "Do you want to update the product details?"):
+                        if POSdatabase.update_product_db(self.prod_select[0], self.product_id.get().upper(),
+                                                         self.product_name.get().title(), self.product_categ.get(),
+                                                         self.product_price.get()):
+                            messagebox.showinfo("Success", "Information has been updated!")
+                            self.clear_data()
+                            self.edit_prod_window.destroy()
+                            self.display_prodsearchnamecateg()
+                            return
+                        else:
+                            return
                 else:
+                    messagebox.showerror("Error", "The price must not be less than or equal to zero")
                     return
         except TclError:
             messagebox.showerror("Error", "Please enter valid price.")
@@ -530,7 +545,7 @@ class SalesRegister:
 
         self.total_cost_label = Label(self.heading_frame, fg="yellow green", bg="#3b3b3b", font=("Calibri", 38, "bold"),
                                       text="0.00", anchor="e")
-        self.total_cost_label.place(x=1180, y=2, width=150, height=56)
+        self.total_cost_label.place(x=1030, y=2, width=300, height=56)
 
         sales_frame = Frame(self.POS_window, bg="white")
         sales_frame.place(x=0, y=60, width=1050, height=630)
@@ -645,7 +660,7 @@ class SalesRegister:
         set_pay_btn.place(x=0, y=140, height=45, width=295)
         log_out_btn.place(x=0, y=185, height=45, width=295)
 
-        search_lbl = Label(feature_frame, bg="white", fg="#38b6ff", font=("Blinker", 15, "bold"),
+        search_lbl = Label(feature_frame, bg="white", fg="#0f100d", font=("Blinker", 15, "bold"),
                            text="LIST OF PRODUCTS")
         search_lbl.place(x=0, y=255, height=25, width=295)
 
@@ -908,10 +923,10 @@ class SalesRegister:
         for x in stot:
             total += x[0]
         self.total_cost.set(total)
-        self.total_cost_label.config(text=self.total_cost.get())
-        self.sales_amt.config(text=total)
-        self.vat_amt.config(text=total * 0.12)
-        self.vatable_amt.config(text=total*0.88)
+        self.total_cost_label.config(text="{:.2f}".format(round(self.total_cost.get(), 2)))
+        self.sales_amt.config(text="{:.2f}".format(round(total, 2)))
+        self.vat_amt.config(text="{:.2f}".format(round(total * 0.12, 2)))
+        self.vatable_amt.config(text="{:.2f}".format(round(total*0.88, 2)))
 
     def clear_cart(self):
         POSdatabase.clear_cart(self.trans_id.get())
@@ -986,18 +1001,6 @@ class SalesRegister:
             messagebox.showerror("Payment Error", "Invalid payment amount")
             return
 
-    def log_out(self):
-        if self.trans_id.get() != "":
-            if messagebox.showwarning("Unfinished Transaction", "Do you want to log out? You have not "
-                                      "paid the current transaction yet. Clicking 'Yes' would "
-                                      "cancel the transaction."):
-                POSdatabase.delete_transact(self.trans_id.get())
-            else:
-                return
-        if messagebox.askyesno("Log-out", "Do you want to log out?"):
-            self.POS_window.destroy()
-            LogIn()
-
     def time(self):
         string = strftime('%I:%M:%S %p')
         self.time_label.config(text=string)
@@ -1012,6 +1015,18 @@ class SalesRegister:
             else:
                 return
         self.POS_window.destroy()
+
+    def log_out(self):
+        if self.trans_id.get() != "":
+            if messagebox.askyesno("Unfinished Transaction", "Do you want to log out? You have not "
+                                                             "paid the current transaction yet. Clicking 'Yes' would "
+                                                             "cancel the transaction."):
+                POSdatabase.delete_transact(self.trans_id.get())
+            else:
+                return
+        if messagebox.askyesno("Log-out", "Do you want to log out?"):
+            self.POS_window.destroy()
+            LogIn()
 
 
 LogIn()

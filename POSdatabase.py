@@ -6,9 +6,9 @@ import random
 
 def db_table_create():
     db = sqlite3.connect("pos.db")
-    db.execute("CREATE TABLE IF NOT EXISTS CASHIER(username VARCHAR(10) PRIMARY KEY, password VARCHAR(100))")
+    db.execute("CREATE TABLE IF NOT EXISTS CASHIER(c_username VARCHAR(10) PRIMARY KEY, c_pass VARCHAR(100))")
     cursor = db.cursor()
-    cursor.execute("SELECT * FROM CASHIER where username='admin'")
+    cursor.execute("SELECT * FROM CASHIER where c_username='admin'")
     check = cursor.fetchone()
     if not check:
         db.execute("INSERT INTO CASHIER VALUES(?,?)", ("admin", "thehideoutcoffeeshopadmin"))
@@ -17,18 +17,18 @@ def db_table_create():
     db.execute("CREATE TABLE IF NOT EXISTS TRANSACTIONS(transact_id VARCHAR(10) NOT NULL PRIMARY KEY,"
                "order_date DATE NOT NULL, c_username VARCHAR(10) NOT NULL,"
                "FOREIGN KEY (c_username)"
-               "REFERENCES CASHIER(username)"
+               "REFERENCES CASHIER(c_username)"
                "    ON DELETE SET NULL"
                "    ON UPDATE CASCADE)")
     db.execute("CREATE TABLE IF NOT EXISTS PAYMENT(pay_id VARCHAR(10) NOT NULL PRIMARY KEY, "
-               "transaction_id VARCHAR(10) NOT NULL,"
+               "transact_id VARCHAR(10) NOT NULL,"
                "payment_date DATE NOT NULL,"
                "total_cost DOUBLE NOT NULL,"
                "amount DOUBLE NOT NULL,"
                "change AS (amount - total_cost),"
-               "vat AS (total_cost*0.12),"
-               "vatable_sale AS (total_cost-vat), "
-               "FOREIGN KEY (transaction_id)"
+               "vat AS (round(total_cost*0.12, 2)),"
+               "vatable_sale AS (round(total_cost-vat, 2)), "
+               "FOREIGN KEY (transact_id)"
                "REFERENCES TRANSACTIONS(transact_id))")
     db.execute("CREATE TABLE IF NOT EXISTS contains(transact_id VARCHAR(10) NOT NULL,"
                "product_id VARCHAR(10) NOT NULL,"
@@ -51,7 +51,7 @@ def db_table_create():
 def log_in(username, password):
     db = sqlite3.connect("pos.db")
     cursor = db.cursor()
-    cursor.execute("SELECT * FROM CASHIER where username=? AND password=?",
+    cursor.execute("SELECT * FROM CASHIER where c_username=? AND c_pass=?",
                    (username, password))
     row = cursor.fetchone()
     db.commit()
@@ -139,7 +139,7 @@ def search_user_db(username):
     db = sqlite3.connect("pos.db")
     db.execute("PRAGMA foreign_keys = 1")
     cur = db.cursor()
-    cur.execute("SELECT * FROM CASHIER WHERE username LIKE ?", ('%' + username + '%',))
+    cur.execute("SELECT * FROM CASHIER WHERE c_username LIKE ?", ('%' + username + '%',))
     result = cur.fetchall()
     db.commit()
     db.close()
@@ -164,7 +164,7 @@ def delete_user_db(uname):
     db = sqlite3.connect("pos.db")
     db.execute("PRAGMA foreign_keys = 1")
     cur = db.cursor()
-    cur.execute("DELETE FROM CASHIER WHERE username=?", (uname,))
+    cur.execute("DELETE FROM CASHIER WHERE c_username=?", (uname,))
     db.commit()
     db.close()
 
@@ -175,9 +175,9 @@ def update_user_db(key, uname, cpass):
     cur = db.cursor()
     try:
         if key != uname:
-            cur.execute("UPDATE CASHIER SET username=?, password=? WHERE username=?", (uname, cpass, key))
+            cur.execute("UPDATE CASHIER SET c_username=?, c_pass=? WHERE c_username=?", (uname, cpass, key))
         else:
-            cur.execute("UPDATE CASHIER SET password=? WHERE username=?", (cpass, uname))
+            cur.execute("UPDATE CASHIER SET c_pass=? WHERE c_username=?", (cpass, uname))
         db.commit()
         db.close()
         return True
@@ -378,7 +378,7 @@ def payment_history(trans_id):
     if trans_id == "":
         cur.execute("SELECT * FROM PAYMENT")
     else:
-        cur.execute("SELECT * FROM PAYMENT WHERE transaction_id=?", (trans_id,))
+        cur.execute("SELECT * FROM PAYMENT WHERE transact_id=?", (trans_id,))
     pay_hist = cur.fetchall()
     db.commit()
     db.close()

@@ -58,6 +58,10 @@ class TransactHistory:
         trans = POSdatabase.trans_srch_by_cashier(self.cashier.get())
         self.trans_hist_table.delete(*self.trans_hist_table.get_children())
         for tr in trans:
-            pay_tr = POSdatabase.payment_history(tr[0])[0]
-            self.trans_hist_table.insert('', END, values=(tr[0], tr[1], tr[2], pay_tr[0],
-                                                          pay_tr[4], pay_tr[5], pay_tr[6]))
+            try:
+                pay_tr = POSdatabase.payment_history(tr[0])[0]
+                self.trans_hist_table.insert('', END, values=(tr[0], tr[1], tr[2], pay_tr[0],
+                                                              "{:.2f}".format(pay_tr[3]),"{:.2f}".format(pay_tr[4]),
+                                                              "{:.2f}".format(pay_tr[5])))
+            except IndexError:
+                POSdatabase.delete_transact(tr[0])
