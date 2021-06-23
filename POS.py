@@ -1,10 +1,17 @@
+# modules
 from tkinter import *
 from tkinter import ttk
 from tkinter import messagebox
 from time import strftime
-from usersettingsframe import UserSettingsFrame
-import POSdatabase
 import datetime as dt
+
+# local files
+from usersettingsframe import UserSettingsFrame
+from prodtotalsalesframe import ProdTotalSales
+from saleshistoryframe import SalesHistory
+from paymenthistoryframe import PaymentHistory
+from transacthistoryframe import TransactHistory
+import POSdatabase
 
 
 class LogIn:
@@ -77,6 +84,7 @@ class ManagerMain:
         self.product_name = StringVar()
         self.product_categ = StringVar()
         self.product_price = DoubleVar()
+        self.prod_srch_categ = StringVar()
 
         self.search_product = StringVar()
 
@@ -92,43 +100,53 @@ class ManagerMain:
         self.right_frame = Frame(bg_frame, bg="white")
         self.right_frame.place(x=280, y=0, width=1070, height=690)
 
-        admin_name = Label(self.nav_frame, text="Admin")
-        admin_name.place(x=0, y=140, width=280, height=40)
+        admin_img = PhotoImage(file=r"images\admin.png").subsample(3, 3)
+        admin_name = Label(self.nav_frame, image=admin_img, bg="#0a100d")
+        admin_name.img = admin_img
+        admin_name.place(x=65, y=25, width=150, height=150)
 
-        prod_list = Button(self.nav_frame, text="      PRODUCTS", relief=FLAT, font=("Blinker", 15, "bold"),
+        prodnavimg = PhotoImage(file=r"images\prodnav.png")
+        prodtotalnavimg = PhotoImage(file=r"images\prodtotalnav.png")
+        salesnavimg = PhotoImage(file=r"images\salesnav.png")
+        transnavimg = PhotoImage(file=r"images\transnav.png")
+        paynavimg = PhotoImage(file=r"images\paynav.png")
+        usernavimg = PhotoImage(file=r"images\usernav.png")
+        outnavimg = PhotoImage(file=r"images\outnav.png")
+
+        prod_list = Button(self.nav_frame, text="   PRODUCTS", relief=FLAT, font=("Blinker", 15, "bold"),
                            bg="#0a100d", fg="white", activebackground="#0a100d", activeforeground="white",
-                           anchor="w", compound="left",
-                           command=self.products)
+                           image=prodnavimg, anchor="w", compound="left", command=self.products)
+        prod_list.img = prodnavimg
         prod_list.place(x=0, y=200, width=280, height=50)
-        prod_total = Button(self.nav_frame, text="      PRODUCT TOTAL SALES", relief=FLAT, font=("Blinker", 15, "bold"),
+        prod_total = Button(self.nav_frame, text="   PRODUCT TOTAL SALES", relief=FLAT, font=("Blinker", 15, "bold"),
                             bg="#0a100d", fg="white", activebackground="#0a100d", activeforeground="white",
-                            anchor="w", compound="left",
-                            command=self.prod_total_sales)
+                            image=prodtotalnavimg, anchor="w", compound="left", command=self.prod_total_sales)
+        prod_total.img = prodtotalnavimg
         prod_total.place(x=0, y=250, width=280, height=50)
-        sales_hist = Button(self.nav_frame, text="      SALES HISTORY", relief=FLAT, font=("Blinker", 15, "bold"),
+        sales_hist = Button(self.nav_frame, text="   SALES HISTORY", relief=FLAT, font=("Blinker", 15, "bold"),
                             bg="#0a100d", fg="white", activebackground="#0a100d", activeforeground="white",
-                            anchor="w", compound="left",
-                            command=self.sales_history)
+                            anchor="w", compound="left", image=salesnavimg, command=self.sales_history)
+        sales_hist.img = salesnavimg
         sales_hist.place(x=0, y=300, width=280, height=50)
-        transact_hist = Button(self.nav_frame, text="      TRANSACTION HISTORY", relief=FLAT,
-                               font=("Blinker", 15, "bold"), bg="#0a100d", fg="white", activebackground="#0a100d",
-                               activeforeground="white", anchor="w", compound="left",
-                               command=self.trans_history)
+        transact_hist = Button(self.nav_frame, text="   TRANSACTION HISTORY", relief=FLAT, font=("Blinker", 15, "bold"),
+                               bg="#0a100d", fg="white", activebackground="#0a100d", activeforeground="white",
+                               image=transnavimg, anchor="w", compound="left", command=self.trans_history)
+        transact_hist.img = transnavimg
         transact_hist.place(x=0, y=350, width=280, height=50)
-        pay_hist = Button(self.nav_frame, text="      PAYMENT HISTORY", relief=FLAT, font=("Blinker", 15, "bold"),
-                          bg="#0a100d", fg="white", activebackground="#0a100d",
-                          activeforeground="white", anchor="w", compound="left",
-                          command=self.pay_history)
+        pay_hist = Button(self.nav_frame, text="   PAYMENT HISTORY", relief=FLAT, font=("Blinker", 15, "bold"),
+                          bg="#0a100d", fg="white", activebackground="#0a100d", activeforeground="white",
+                          image=paynavimg, anchor="w", compound="left", command=self.pay_history)
+        pay_hist.img = paynavimg
         pay_hist.place(x=0, y=400, width=280, height=50)
-        user_set = Button(self.nav_frame, text="      USER SETTINGS", relief=FLAT, font=("Blinker", 15, "bold"),
-                          bg="#0a100d", fg="white", activebackground="#0a100d",
-                          activeforeground="white", anchor="w", compound="left",
-                          command=self.user_settings)
+        user_set = Button(self.nav_frame, text="   USER SETTINGS", relief=FLAT, font=("Blinker", 15, "bold"),
+                          bg="#0a100d", fg="white", activebackground="#0a100d", activeforeground="white",
+                          image=usernavimg, anchor="w", compound="left", command=self.user_settings)
+        user_set.img = usernavimg
         user_set.place(x=0, y=450, width=280, height=50)
-        log_out = Button(self.nav_frame, text="      LOG OUT", relief=FLAT, font=("Blinker", 15, "bold"),
-                         bg="#0a100d", fg="white", activebackground="#0a100d",
-                         activeforeground="white", anchor="w", compound="left",
-                         command=self.logout)
+        log_out = Button(self.nav_frame, text="   LOG OUT", relief=FLAT, font=("Blinker", 15, "bold"),
+                         bg="#0a100d", fg="white", activebackground="#0a100d", activeforeground="white",
+                         image=outnavimg, anchor="w", compound="left", command=self.logout)
+        log_out.img = outnavimg
         log_out.place(x=0, y=500, width=280, height=50)
 
         self.product_frame = Frame(self.right_frame)
@@ -170,7 +188,24 @@ class ManagerMain:
         self.product_frame.place(x=10, y=50, width=1050, height=630)
         self.heading.config(text="PRODUCT LIST")
 
-        self.search_prod.place(x=660, y=6, height=33, width=250)
+        srch_icon = PhotoImage(file=r"images\blacksearch.png").subsample(2, 2)
+        srch_categ_lbl = Label(self.product_frame, bg="#0A100d", fg="white", font=("Bebas Neue", 14),
+                              image=srch_icon, text=" Category", compound="left", anchor="w")
+        srch_categ = ttk.Combobox(self.product_frame, textvariable=self.prod_srch_categ, font=("Bebas Neue", 14),
+                                  values=["All", "Coffee (Hot/Iced)", "Add Ons", "Non-coffee", "Snacks",
+                                          "Homemade Ice Cream"])
+        self.prod_srch_categ.set("All")
+        self.prod_srch_categ.trace("w", lambda name, index, mode,
+                                   sv=self.prod_srch_categ: self.display_prodsearchnamecateg())
+
+        srch_name_lbl = Label(self.product_frame, bg="#0A100d", fg="white", font=("Bebas Neue", 14),
+                              image=srch_icon, text=" Name", compound="left", anchor="w")
+        srch_name_lbl.img = srch_icon
+
+        srch_name_lbl.place(height=33, width=70, y=6, x=10)
+        self.search_prod.place(x=80, y=6, height=33, width=220)
+        srch_categ_lbl.place(width=100, height=33, y=6, x=305)
+        srch_categ.place(height=33, width=160, x=405, y=6)
 
         add_prod_img = PhotoImage(file=r"images/addprod.png").subsample(2, 2)
         add_prod_btn = Button(self.product_frame, image=add_prod_img, command=self.add_product_frame)
@@ -208,8 +243,9 @@ class ManagerMain:
         self.product_table['show'] = 'headings'
         self.product_table.pack(fill=BOTH, expand=1)
 
-        self.display_prod_search()
-        self.search_product.trace("w", lambda name, index, mode, sv=self.search_product: self.display_prod_search())
+        self.display_prodsearchnamecateg()
+        self.search_product.trace("w", lambda name, index, mode,
+                                  sv=self.search_product: self.display_prodsearchnamecateg())
 
     def add_product_frame(self):
         self.add_prod_window = Toplevel()
@@ -275,7 +311,7 @@ class ManagerMain:
                         self.clear_data()
                         messagebox.showinfo("Success", "Product added in database.")
                         self.add_prod_window.destroy()
-                        self.display_prod_search()
+                        self.display_prodsearchnamecateg()
                         return
                     else:
                         return
@@ -368,7 +404,7 @@ class ManagerMain:
                         messagebox.showinfo("Success", "Information has been updated!")
                         self.clear_data()
                         self.edit_prod_window.destroy()
-                        self.display_prod_search()
+                        self.display_prodsearchnamecateg()
                         return
                     else:
                         return
@@ -389,45 +425,51 @@ class ManagerMain:
             if messagebox.askyesno("Delete Product", "Do you wish to remove this product?"):
                 POSdatabase.delete_prod_db(prod_select[0])
                 messagebox.showinfo("Success", "Product removed in database")
-                self.display_prod_search()
+                self.display_prodsearchnamecateg()
                 return
             else:
                 return
 
-    def display_prod_search(self):
-        result = POSdatabase.search_prod_db_by_name(self.search_product.get())
+    def display_prodsearchnamecateg(self):
+        if self.prod_srch_categ.get() == "All":
+            result = POSdatabase.search_prod_db_by_namecateg(self.search_product.get(), "")
+        else:
+            result = POSdatabase.search_prod_db_by_namecateg(self.search_product.get(), self.prod_srch_categ.get())
         self.product_table.delete(*self.product_table.get_children())
         if not result:
             return
         else:
             for x in result:
-                self.product_table.insert('', 0, values=(x[0], x[1], x[2], x[3]))
+                self.product_table.insert('', END, values=(x[0], x[1], x[2], x[3]))
 
     def prod_total_sales(self):
         self.hide_widgets()
         self.prod_total_sales_frame.place(x=10, y=50, width=1050, height=630)
         self.heading.config(text="TOTAL SALES")
+        ProdTotalSales(self.prod_total_sales_frame)
 
     def sales_history(self):
         self.hide_widgets()
         self.sales_hist_frame.place(x=10, y=50, width=1050, height=630)
         self.heading.config(text="SALES HISTORY")
+        SalesHistory(self.sales_hist_frame)
 
     def trans_history(self):
         self.hide_widgets()
         self.trans_hist_frame.place(x=10, y=50, width=1050, height=630)
         self.heading.config(text="TRANSACTION HISTORY")
+        TransactHistory(self.trans_hist_frame)
 
     def pay_history(self):
         self.hide_widgets()
         self.pay_hist_frame.place(x=10, y=50, width=1050, height=630)
         self.heading.config(text="PAYMENT HISTORY")
+        PaymentHistory(self.pay_hist_frame)
 
     def user_settings(self):
         self.hide_widgets()
         self.user_frame.place(x=10, y=50, width=1050, height=630)
         self.heading.config(text="USER SETTINGS")
-
         UserSettingsFrame(self.user_frame)
 
     def logout(self):
@@ -659,7 +701,7 @@ class SalesRegister:
                 messagebox.showerror("Add Product Error", "Invalid Product ID")
                 return
             else:
-                POSdatabase.add_prod_to_trans(self.trans_id.get(), prod[0], prod[1], prod[3], 1, 0)
+                POSdatabase.add_prod_to_trans(self.trans_id.get(), prod[0], prod[3], 1, 0)
                 self.refresh()
 
     def add_prod_dbclick(self, ev):
@@ -688,44 +730,48 @@ class SalesRegister:
         contents = self.trans_reg_table.item(item)
         prod_sel = contents['values']
 
-        self.edit_quant_window = Toplevel()
-        self.edit_quant_window.title("Edit Quantity")
-        self.edit_quant_window.geometry("500x270+425+210")
-        self.edit_quant_window.resizable(False, False)
-        self.edit_quant_window.config(bg="white")
-        self.edit_quant_window.iconbitmap(r"images\logo.ico")
+        if not prod_sel:
+            messagebox.showerror("Edit Quantity Error", "Select a product in the transaction first!")
+            return
+        else:
+            self.edit_quant_window = Toplevel()
+            self.edit_quant_window.title("Edit Quantity")
+            self.edit_quant_window.geometry("500x270+425+210")
+            self.edit_quant_window.resizable(False, False)
+            self.edit_quant_window.config(bg="white")
+            self.edit_quant_window.iconbitmap(r"images\logo.ico")
 
-        self.edit_quant.set(prod_sel[3])
-        self.price_prod.set(prod_sel[2])
-        self.prod_id.set(prod_sel[0])
+            self.edit_quant.set(prod_sel[3])
+            self.price_prod.set(prod_sel[2])
+            self.prod_id.set(prod_sel[0])
 
-        label_name = Label(self.edit_quant_window, text="Product Name: ", font=("Bebas Neue", 17), bg="black",
-                           fg="white")
-        label_name.place(x=10, y=10, width=150, height=40)
-        prod_name = Label(self.edit_quant_window, text=prod_sel[1], font=("Bebas Neue", 16), bg="white", fg="black",
-                          anchor="w")
-        prod_name.place(x=170, y=10, height=40, width=320)
-        label_price = Label(self.edit_quant_window, text="Price: ", font=("Bebas Neue", 17), bg="black", fg="white")
-        label_price.place(x=10, y=60, width=150, height=40)
-        prod_price = Label(self.edit_quant_window, text=self.price_prod.get(), font=("Bebas Neue", 16), bg="white",
-                           fg="black", anchor='w')
-        prod_price.place(x=170, y=60, height=40, width=320)
-        label_quant = Label(self.edit_quant_window, text="Quantity: ", font=("Bebas Neue", 17), bg="black", fg="white")
-        label_quant.place(x=10, y=110, width=150, height=40)
-        prod_qty = Entry(self.edit_quant_window, textvariable=self.edit_quant, highlightbackground="black",
-                         highlightthickness=2, font=("Bebas Neue", 16))
-        prod_qty.place(x=170, y=110, height=40, width=150)
-        label_subtotal = Label(self.edit_quant_window, text="Subtotal: ", font=("Bebas Neue", 17), bg="black",
+            label_name = Label(self.edit_quant_window, text="Product Name: ", font=("Bebas Neue", 17), bg="black",
                                fg="white")
-        label_subtotal.place(x=10, y=160, width=150, height=40)
-        self.subtotal = Label(self.edit_quant_window, anchor='w', text=self.price_prod.get() * self.edit_quant.get(),
-                              font=("Bebas Neue", 17), bg="white", fg="black")
-        self.subtotal.place(x=170, y=160, height=40, width=320)
+            label_name.place(x=10, y=10, width=150, height=40)
+            prod_name = Label(self.edit_quant_window, text=prod_sel[1], font=("Bebas Neue", 16), bg="white", fg="black",
+                              anchor="w")
+            prod_name.place(x=170, y=10, height=40, width=320)
+            label_price = Label(self.edit_quant_window, text="Price: ", font=("Bebas Neue", 17), bg="black", fg="white")
+            label_price.place(x=10, y=60, width=150, height=40)
+            prod_price = Label(self.edit_quant_window, text=self.price_prod.get(), font=("Bebas Neue", 16), bg="white",
+                               fg="black", anchor='w')
+            prod_price.place(x=170, y=60, height=40, width=320)
+            label_quant = Label(self.edit_quant_window, text="Quantity: ", font=("Bebas Neue", 17), bg="black", fg="white")
+            label_quant.place(x=10, y=110, width=150, height=40)
+            prod_qty = Entry(self.edit_quant_window, textvariable=self.edit_quant, highlightbackground="black",
+                             highlightthickness=2, font=("Bebas Neue", 16))
+            prod_qty.place(x=170, y=110, height=40, width=150)
+            label_subtotal = Label(self.edit_quant_window, text="Subtotal: ", font=("Bebas Neue", 17), bg="black",
+                                   fg="white")
+            label_subtotal.place(x=10, y=160, width=150, height=40)
+            self.subtotal = Label(self.edit_quant_window, anchor='w', text=self.price_prod.get() * self.edit_quant.get(),
+                                  font=("Bebas Neue", 17), bg="white", fg="black")
+            self.subtotal.place(x=170, y=160, height=40, width=320)
 
-        edit_quantity_btn = Button(self.edit_quant_window, command=self.edit_quantity)
-        edit_quantity_btn.place(x=390, y=220, width=100, height=40)
+            edit_quantity_btn = Button(self.edit_quant_window, command=self.edit_quantity)
+            edit_quantity_btn.place(x=390, y=220, width=100, height=40)
 
-        self.edit_quant.trace("w", lambda name, index, mode, sv=self.edit_quant: self.edit_quant_auto_subtotal())
+            self.edit_quant.trace("w", lambda name, index, mode, sv=self.edit_quant: self.edit_quant_auto_subtotal())
 
     def edit_quant_auto_subtotal(self):
         try:
@@ -821,12 +867,15 @@ class SalesRegister:
 
     def add_discount(self):
         try:
-            POSdatabase.add_discount(self.trans_id.get(), self.prod_id.get(), self.disc_amount.get())
-            self.disc_amount.set(0)
-            self.disc_perc.set(0)
-            self.add_disc_window.destroy()
-            self.refresh()
-            return
+            if messagebox.askyesno("Add Discount", "Confirm adding discount?"):
+                POSdatabase.add_discount(self.trans_id.get(), self.prod_id.get(), self.disc_amount.get())
+                self.disc_amount.set(0)
+                self.disc_perc.set(0)
+                self.add_disc_window.destroy()
+                self.refresh()
+                return
+            else:
+                return
         except TclError:
             messagebox.showerror("Error", "Input valid discount percent.")
             return
@@ -941,4 +990,5 @@ class SalesRegister:
         self.POS_window.destroy()
 
 
-LogIn()
+# LogIn()
+ManagerMain()

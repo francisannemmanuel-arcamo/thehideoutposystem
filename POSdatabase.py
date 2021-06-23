@@ -95,6 +95,18 @@ def search_prod_db_by_id(prod_id):
     return result
 
 
+def search_prod_db_by_namecateg(prod_name, prod_categ):
+    db = sqlite3.connect("pos.db")
+    db.execute("PRAGMA foreign_keys = 1")
+    cur = db.cursor()
+    cur.execute("SELECT * FROM PRODUCTS WHERE product_categ LIKE ? AND product_name LIKE ?",
+                ('%' + prod_categ + '%', '%' + prod_name + '%',))
+    result = cur.fetchall()
+    db.commit()
+    db.close()
+    return result
+
+
 def delete_prod_db(prod_id):
     db = sqlite3.connect("pos.db")
     db.execute("PRAGMA foreign_keys = 1")
@@ -289,3 +301,59 @@ def add_payment(trans_id, paydate, amount, totalcost):
             continue
     db.commit()
     db.close()
+
+
+def trans_details(trans_id):
+    db = sqlite3.connect("pos.db")
+    db.execute("PRAGMA foreign_keys = 1")
+    cur = db.cursor()
+    cur.execute("SELECT * FROM TRANSACTIONS WHERE transact_id=?", (trans_id,))
+    det = cur.fetchone()
+    db.commit()
+    db.close()
+    return det
+
+
+def trans_show(trans_id):
+    db = sqlite3.connect("pos.db")
+    db.execute("PRAGMA foreign_keys = 1")
+    cur = db.cursor()
+    cur.execute("SELECT * FROM contains WHERE transact_id LIKE ?", ('%' + trans_id + '%',))
+    trans_prods = cur.fetchall()
+    db.commit()
+    db.close()
+    return trans_prods
+
+
+def total_quantity_prod(prod_id):
+    db = sqlite3.connect("pos.db")
+    db.execute("PRAGMA foreign_keys = 1")
+    cur = db.cursor()
+    cur.execute("SELECT item_quantity FROM contains WHERE product_id=?", (prod_id,))
+    prods = cur.fetchall()
+    sum = 0
+    if not prods:
+        return 0
+    else:
+        for x in prods:
+            sum += x[0]
+        return sum
+    db.commit()
+    db.close
+
+
+def tot_sales_prod(prod_id):
+    db = sqlite3.connect("pos.db")
+    db.execute("PRAGMA foreign_keys = 1")
+    cur = db.cursor()
+    cur.execute("SELECT item_subtotal FROM contains WHERE product_id=?", (prod_id,))
+    prods = cur.fetchall()
+    sum = 0
+    if not prods:
+        return 0
+    else:
+        for x in prods:
+            sum += x[0]
+        return sum
+    db.commit()
+    db.close
