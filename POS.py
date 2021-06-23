@@ -190,7 +190,7 @@ class ManagerMain:
 
         srch_icon = PhotoImage(file=r"images\blacksearch.png").subsample(2, 2)
         srch_categ_lbl = Label(self.product_frame, bg="#0A100d", fg="white", font=("Bebas Neue", 14),
-                              image=srch_icon, text=" Category", compound="left", anchor="w")
+                               image=srch_icon, text=" Category", compound="left", anchor="w")
         srch_categ = ttk.Combobox(self.product_frame, textvariable=self.prod_srch_categ, font=("Bebas Neue", 14),
                                   values=["All", "Coffee (Hot/Iced)", "Add Ons", "Non-coffee", "Snacks",
                                           "Homemade Ice Cream"])
@@ -756,7 +756,8 @@ class SalesRegister:
             prod_price = Label(self.edit_quant_window, text=self.price_prod.get(), font=("Bebas Neue", 16), bg="white",
                                fg="black", anchor='w')
             prod_price.place(x=170, y=60, height=40, width=320)
-            label_quant = Label(self.edit_quant_window, text="Quantity: ", font=("Bebas Neue", 17), bg="black", fg="white")
+            label_quant = Label(self.edit_quant_window, text="Quantity: ", font=("Bebas Neue", 17), bg="black",
+                                fg="white")
             label_quant.place(x=10, y=110, width=150, height=40)
             prod_qty = Entry(self.edit_quant_window, textvariable=self.edit_quant, highlightbackground="black",
                              highlightthickness=2, font=("Bebas Neue", 16))
@@ -764,8 +765,8 @@ class SalesRegister:
             label_subtotal = Label(self.edit_quant_window, text="Subtotal: ", font=("Bebas Neue", 17), bg="black",
                                    fg="white")
             label_subtotal.place(x=10, y=160, width=150, height=40)
-            self.subtotal = Label(self.edit_quant_window, anchor='w', text=self.price_prod.get() * self.edit_quant.get(),
-                                  font=("Bebas Neue", 17), bg="white", fg="black")
+            self.subtotal = Label(self.edit_quant_window, anchor='w', font=("Bebas Neue", 17), bg="white", fg="black",
+                                  text=self.price_prod.get() * self.edit_quant.get())
             self.subtotal.place(x=170, y=160, height=40, width=320)
 
             edit_quantity_btn = Button(self.edit_quant_window, command=self.edit_quantity)

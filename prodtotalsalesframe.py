@@ -17,14 +17,13 @@ class ProdTotalSales:
 
         srch_icon = PhotoImage(file=r"images\blacksearch.png").subsample(2, 2)
 
-        srch_name_lbl = Label(self.frame, bg="#0A100d", fg="white", font=("Bebas Neue", 14),
-                              image=srch_icon, text=" Name", compound="left", anchor="w")
+        srch_name_lbl = Label(self.frame, bg="#0A100d", fg="white", font=("Bebas Neue", 14), image=srch_icon,
+                              text=" Name", compound="left", anchor="w")
         srch_name_lbl.img = srch_icon
-        srch_name = Entry(self.frame, highlightbackground="black", highlightthickness=2,
-                                 font=("Blinker", 15, "bold"), textvariable=self.search_name)
-
-        srch_categ_lbl = Label(self.frame, bg="#0A100d", fg="white", font=("Bebas Neue", 14),
-                               image=srch_icon, text=" Category", compound="left", anchor="w")
+        srch_name = Entry(self.frame, highlightbackground="black", highlightthickness=2, font=("Blinker", 15, "bold"),
+                          textvariable=self.search_name)
+        srch_categ_lbl = Label(self.frame, bg="#0A100d", fg="white", font=("Bebas Neue", 14), image=srch_icon,
+                               text=" Category", compound="left", anchor="w")
         srch_categ = ttk.Combobox(self.frame, textvariable=self.search_categ, font=("Bebas Neue", 14),
                                   values=["All", "Coffee (Hot/Iced)", "Add Ons", "Non-coffee", "Snacks",
                                           "Homemade Ice Cream"])
@@ -34,15 +33,15 @@ class ProdTotalSales:
         srch_categ_lbl.place(width=100, height=33, y=6, x=305)
         srch_categ.place(height=33, width=160, x=405, y=6)
 
-        self.search_name.trace("w", lambda name, index, mode, sv=self.search_name: self.display_prodsearchname())
-        self.search_categ.trace("w", lambda name, index, mode, sv=self.search_categ: self.display_prodsearchcateg())
+        self.search_name.trace("w", lambda name, index, mode, sv=self.search_name: self.display_prodsearchnamecateg())
+        self.search_categ.trace("w", lambda name, index, mode, sv=self.search_categ: self.display_prodsearchnamecateg())
 
         heading_bg = ttk.Style()
         heading_bg.theme_use("clam")
         heading_bg.configure('Treeview.Heading', background="black", foreground="white", font=("Bebas Neue", 13))
 
-        self.prod_total_table = ttk.Treeview(prod_list_frame, columns=("prod_id", "prod_name",
-                                                                  "prod_categ", "prod_qty", "prod_sales"))
+        self.prod_total_table = ttk.Treeview(prod_list_frame, columns=("prod_id", "prod_name", "prod_categ",
+                                                                       "prod_qty", "prod_sales"))
         self.prod_total_table.config(yscrollcommand=scroll_y)
         scroll_y.pack(side=RIGHT, fill=Y)
         scroll_y.config(command=self.prod_total_table.yview)
@@ -75,4 +74,3 @@ class ProdTotalSales:
                 stot = POSdatabase.tot_sales_prod(x[0])
                 if quant != 0:
                     self.prod_total_table.insert('', END, values=(x[0], x[1], x[2], quant, stot))
-

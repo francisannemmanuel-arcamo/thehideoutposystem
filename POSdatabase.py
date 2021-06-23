@@ -314,11 +314,12 @@ def trans_details(trans_id):
     return det
 
 
-def trans_show(trans_id):
+def trans_show(trans_id, prod_id):
     db = sqlite3.connect("pos.db")
     db.execute("PRAGMA foreign_keys = 1")
     cur = db.cursor()
-    cur.execute("SELECT * FROM contains WHERE transact_id LIKE ?", ('%' + trans_id + '%',))
+    cur.execute("SELECT * FROM contains WHERE transact_id LIKE ? AND product_id LIKE ?",
+                ('%' + trans_id + '%', '%' + prod_id + '%'))
     trans_prods = cur.fetchall()
     db.commit()
     db.close()
@@ -331,15 +332,16 @@ def total_quantity_prod(prod_id):
     cur = db.cursor()
     cur.execute("SELECT item_quantity FROM contains WHERE product_id=?", (prod_id,))
     prods = cur.fetchall()
-    sum = 0
+    db.commit()
+    db.close()
+    tot_qty = 0
     if not prods:
         return 0
     else:
         for x in prods:
-            sum += x[0]
-        return sum
-    db.commit()
-    db.close
+            tot_qty += x[0]
+        return tot_qty
+
 
 
 def tot_sales_prod(prod_id):
@@ -348,12 +350,37 @@ def tot_sales_prod(prod_id):
     cur = db.cursor()
     cur.execute("SELECT item_subtotal FROM contains WHERE product_id=?", (prod_id,))
     prods = cur.fetchall()
-    sum = 0
+    db.commit()
+    db.close()
+    tot_sales = 0
     if not prods:
         return 0
     else:
         for x in prods:
-            sum += x[0]
-        return sum
+            tot_sales += x[0]
+        return tot_sales
+
+
+def trans_srch_by_cashier(cash_username):
+    db = sqlite3.connect("pos.db")
+    db.execute("PRAGMA foreign_keys = 1")
+    cur = db.cursor()
+    cur.execute("SELECT * FROM TRANSACTIONS WHERE c_username LIKE ?", ('%' + cash_username + '%',))
+    trans = cur.fetchall()
     db.commit()
-    db.close
+    db.close()
+    return trans
+
+
+def payment_history(trans_id):
+    db = sqlite3.connect("pos.db")
+    db.execute("PRAGMA foreign_keys = 1")
+    cur = db.cursor()
+    if trans_id == "":
+        cur.execute("SELECT * FROM PAYMENT")
+    else:
+        cur.execute("SELECT * FROM PAYMENT WHERE transaction_id=?", (trans_id,))
+    pay_hist = cur.fetchall()
+    db.commit()
+    db.close()
+    return pay_hist

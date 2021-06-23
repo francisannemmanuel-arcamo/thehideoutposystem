@@ -1,7 +1,7 @@
 from tkinter import *
 from tkinter import ttk
 
-import sqlite3
+import POSdatabase
 
 
 class PaymentHistory:
@@ -41,12 +41,7 @@ class PaymentHistory:
         self.pay_hist_table.column("change", anchor="center", width=114)
         self.pay_hist_table.pack(fill=BOTH, expand=1)
 
-        db = sqlite3.connect("pos.db")
-        db.execute("PRAGMA foreign_keys = 1")
-        cur = db.cursor()
-        cur.execute("SELECT * FROM PAYMENT")
-        pay_hist = cur.fetchall()
+        pay_hist = POSdatabase.payment_history("")
         self.pay_hist_table.delete(*self.pay_hist_table.get_children())
         for pay in pay_hist:
             self.pay_hist_table.insert('', END, values=(pay[0], pay[1], pay[2], pay[3], pay[6], pay[7], pay[4], pay[5]))
-
