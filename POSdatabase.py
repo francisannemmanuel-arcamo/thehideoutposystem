@@ -6,41 +6,49 @@ import random
 
 def db_table_create():
     db = sqlite3.connect("pos.db")
-    db.execute("CREATE TABLE IF NOT EXISTS CASHIER(c_username VARCHAR(10) PRIMARY KEY, c_pass VARCHAR(100))")
+    db.execute("CREATE TABLE IF NOT EXISTS USERS(c_username VARCHAR(20) NOT NULL DEFAULT '', "
+               "c_pass VARCHAR(30) NOT NULL DEFAULT '',"
+               "c_role VARCHAR(5) NOT NULL DEFAULT '',"
+               "PRIMARY KEY (c_username))")
     cursor = db.cursor()
-    cursor.execute("SELECT * FROM CASHIER where c_username='admin'")
+    cursor.execute("SELECT * FROM USERS where c_role='admin'")
     check = cursor.fetchone()
     if not check:
-        db.execute("INSERT INTO CASHIER VALUES(?,?)", ("admin", "thehideoutcoffeeshopadmin"))
-    db.execute("CREATE TABLE IF NOT EXISTS PRODUCTS(product_id VARCHAR(10) NOT NULL PRIMARY KEY,"
-               "product_name VARCHAR(10) NOT NULL, product_categ VARCHAR(10) NOT NULL, product_price DOUBLE NOT NULL)")
-    db.execute("CREATE TABLE IF NOT EXISTS TRANSACTIONS(transact_id VARCHAR(10) NOT NULL PRIMARY KEY,"
-               "order_date DATE NOT NULL, c_username VARCHAR(10) NOT NULL,"
-               "FOREIGN KEY (c_username)"
-               "REFERENCES CASHIER(c_username)"
-               "    ON DELETE SET NULL"
+        db.execute("INSERT INTO USERS VALUES(?,?,?)", ("admin", "thehideoutcoffeeshopadmin", "admin"))
+    db.execute("CREATE TABLE IF NOT EXISTS PRODUCT(product_id VARCHAR(10) NOT NULL DEFAULT '',"
+               "product_price DOUBLE NOT NULL DEFAULT 0,"
+               "product_name VARCHAR(50) NOT NULL DEFAULT '', "
+               "product_categ VARCHAR(50) NOT NULL DEFAULT '',"
+               "PRIMARY KEY (product_id))")
+    db.execute("CREATE TABLE IF NOT EXISTS TRANSACTIONS(transact_id VARCHAR(10) NOT NULL,"
+               "order_date DATE NOT NULL, "
+               "c_username VARCHAR(10) NOT NULL DEFAULT '',"
+               "PRIMARY KEY (transact_id),"
+               "FOREIGN KEY (c_username) REFERENCES USERS(c_username)"
+               "    ON DELETE NO ACTION"
                "    ON UPDATE CASCADE)")
-    db.execute("CREATE TABLE IF NOT EXISTS PAYMENT(pay_id VARCHAR(10) NOT NULL PRIMARY KEY, "
+    db.execute("CREATE TABLE IF NOT EXISTS TRANSACTED_PRODUCTS(transact_id VARCHAR(10) NOT NULL,"
+               "product_id VARCHAR(10) NOT NULL,"
+               "prod_price NOT NULL DEFAULT 0,"
+               "item_quantity INTEGER NOT NULL DEFAULT 1,"
+               "discount DOUBLE NOT NULL DEFAULT 0,"
+               "item_subtotal AS (prod_price*item_quantity - discount),"
+               "PRIMARY KEY (transact_id, product_id),"
+               "FOREIGN KEY (product_id) REFERENCES PRODUCT(product_id)"
+               "    ON DELETE NO ACTION"
+               "    ON UPDATE CASCADE,"
+               "FOREIGN KEY (transact_id)"
+               "REFERENCES TRANSACTIONS(transact_id)"
+               "    ON DELETE CASCADE)")
+    db.execute("CREATE TABLE IF NOT EXISTS PAYMENT(pay_id VARCHAR(10) NOT NULL, "
                "transact_id VARCHAR(10) NOT NULL,"
                "payment_date DATE NOT NULL,"
-               "total_cost DOUBLE NOT NULL,"
-               "amount DOUBLE NOT NULL,"
+               "total_cost DOUBLE NOT NULL DEFAULT 0,"
+               "amount DOUBLE NOT NULL DEFAULT 0,"
                "change AS (amount - total_cost),"
                "vat AS (round(total_cost*0.12, 2)),"
-               "vatable_sale AS (round(total_cost-vat, 2)), "
-               "FOREIGN KEY (transact_id)"
-               "REFERENCES TRANSACTIONS(transact_id))")
-    db.execute("CREATE TABLE IF NOT EXISTS contains(transact_id VARCHAR(10) NOT NULL,"
-               "product_id VARCHAR(10) NOT NULL,"
-               "prod_price NOT NULL,"
-               "item_quantity INTEGER NOT NULL,"
-               "discount DOUBLE NOT NULL,"
-               "item_subtotal AS (prod_price*item_quantity - discount),"
-               "PRIMARY KEY (transact_id, product_id)"
-               "FOREIGN KEY (product_id) "
-               "REFERENCES PRODUCTS(product_id)"
-               "    ON DELETE SET NULL"
-               "    ON UPDATE CASCADE,"
+               "vatable_sale AS (round(total_cost-vat, 2)),"
+               "PRIMARY KEY(pay_id),"
                "FOREIGN KEY (transact_id)"
                "REFERENCES TRANSACTIONS(transact_id)"
                "    ON DELETE CASCADE)")
@@ -51,7 +59,7 @@ def db_table_create():
 def log_in(username, password):
     db = sqlite3.connect("pos.db")
     cursor = db.cursor()
-    cursor.execute("SELECT * FROM CASHIER where c_username=? AND c_pass=?",
+    cursor.execute("SELECT * FROM USERS where c_username=? AND c_pass=?",
                    (username, password))
     row = cursor.fetchone()
     db.commit()
@@ -64,7 +72,7 @@ def add_prod_db(prod_id, name, categ, price):
     db.execute("PRAGMA foreign_keys = 1")
     cur = db.cursor()
     try:
-        cur.execute("INSERT INTO PRODUCTS VALUES(?, ?, ?, ?)", (prod_id, name, categ, price))
+        cur.execute("INSERT INTO PRODUCT VALUES(?, ?, ?, ?)", (prod_id, price, name, categ))
         db.commit()
         db.close()
         return True
@@ -77,7 +85,7 @@ def search_prod_db_by_name(prod_name):
     db = sqlite3.connect("pos.db")
     db.execute("PRAGMA foreign_keys = 1")
     cur = db.cursor()
-    cur.execute("SELECT * FROM PRODUCTS WHERE product_name LIKE ?", ('%' + prod_name + '%',))
+    cur.execute("SELECT * FROM PRODUCT WHERE product_name LIKE ?", ('%' + prod_name + '%',))
     result = cur.fetchall()
     db.commit()
     db.close()
@@ -88,7 +96,7 @@ def search_prod_db_by_id(prod_id):
     db = sqlite3.connect("pos.db")
     db.execute("PRAGMA foreign_keys = 1")
     cur = db.cursor()
-    cur.execute("SELECT * FROM PRODUCTS WHERE product_id=?", (prod_id,))
+    cur.execute("SELECT * FROM PRODUCT WHERE product_id=?", (prod_id,))
     result = cur.fetchone()
     db.commit()
     db.close()
@@ -99,7 +107,7 @@ def search_prod_db_by_namecateg(prod_name, prod_categ):
     db = sqlite3.connect("pos.db")
     db.execute("PRAGMA foreign_keys = 1")
     cur = db.cursor()
-    cur.execute("SELECT * FROM PRODUCTS WHERE product_categ LIKE ? AND product_name LIKE ?",
+    cur.execute("SELECT * FROM PRODUCT WHERE product_categ LIKE ? AND product_name LIKE ?",
                 ('%' + prod_categ + '%', '%' + prod_name + '%',))
     result = cur.fetchall()
     db.commit()
@@ -111,9 +119,14 @@ def delete_prod_db(prod_id):
     db = sqlite3.connect("pos.db")
     db.execute("PRAGMA foreign_keys = 1")
     cur = db.cursor()
-    cur.execute("DELETE FROM PRODUCTS WHERE product_id=?", (prod_id,))
-    db.commit()
-    db.close()
+    try:
+        cur.execute("DELETE FROM PRODUCT WHERE product_id=?", (prod_id,))
+        db.commit()
+        db.close()
+        return True
+    except sqlite3.IntegrityError:
+        messagebox.showerror("Error", "You cannot delete this product")
+        return False
 
 
 def update_product_db(key, prod_id, prod_name, prod_categ, prod_price):
@@ -122,10 +135,10 @@ def update_product_db(key, prod_id, prod_name, prod_categ, prod_price):
     cur = db.cursor()
     try:
         if key != prod_id:
-            cur.execute("UPDATE PRODUCTS SET product_id=?, product_name=?, product_categ=?, product_price=?"
+            cur.execute("UPDATE PRODUCT SET product_id=?, product_name=?, product_categ=?, product_price=?"
                         "WHERE product_id=?", (prod_id, prod_name, prod_categ, prod_price, key))
         else:
-            cur.execute("UPDATE PRODUCTS SET product_name=?, product_categ=?, product_price=?"
+            cur.execute("UPDATE PRODUCT SET product_name=?, product_categ=?, product_price=?"
                         "WHERE product_id=?", (prod_name, prod_categ, prod_price, prod_id))
         db.commit()
         db.close()
@@ -139,19 +152,19 @@ def search_user_db(username):
     db = sqlite3.connect("pos.db")
     db.execute("PRAGMA foreign_keys = 1")
     cur = db.cursor()
-    cur.execute("SELECT * FROM CASHIER WHERE c_username LIKE ?", ('%' + username + '%',))
+    cur.execute("SELECT * FROM USERS WHERE c_username LIKE ?", ('%' + username + '%',))
     result = cur.fetchall()
     db.commit()
     db.close()
     return result
 
 
-def add_user_db(uname, cpass):
+def add_user_db(uname, cpass, role):
     db = sqlite3.connect("pos.db")
     db.execute("PRAGMA foreign_keys = 1")
     cur = db.cursor()
     try:
-        cur.execute("INSERT INTO CASHIER VALUES(?,?)", (uname, cpass))
+        cur.execute("INSERT INTO USERS VALUES(?,?, ?)", (uname, cpass, role))
         db.commit()
         db.close()
         return True
@@ -164,20 +177,26 @@ def delete_user_db(uname):
     db = sqlite3.connect("pos.db")
     db.execute("PRAGMA foreign_keys = 1")
     cur = db.cursor()
-    cur.execute("DELETE FROM CASHIER WHERE c_username=?", (uname,))
-    db.commit()
-    db.close()
+    try:
+        cur.execute("DELETE FROM USERS WHERE c_username=?", (uname,))
+        db.commit()
+        db.close()
+        return True
+    except sqlite3.IntegrityError:
+        messagebox.showerror("Error", "You cannot delete this user")
+        return False
 
 
-def update_user_db(key, uname, cpass):
+def update_user_db(key, uname, cpass, role):
     db = sqlite3.connect("pos.db")
     db.execute("PRAGMA foreign_keys = 1")
     cur = db.cursor()
     try:
         if key != uname:
-            cur.execute("UPDATE CASHIER SET c_username=?, c_pass=? WHERE c_username=?", (uname, cpass, key))
+            cur.execute("UPDATE USERS SET c_username=?, c_pass=?, c_role=?, WHERE c_username=?",
+                        (uname, cpass, role, key))
         else:
-            cur.execute("UPDATE CASHIER SET c_pass=? WHERE c_username=?", (cpass, uname))
+            cur.execute("UPDATE USERS SET c_pass=?, c_role=?, WHERE c_username=?", (cpass, uname, role))
         db.commit()
         db.close()
         return True
@@ -186,7 +205,7 @@ def update_user_db(key, uname, cpass):
         return False
 
 
-def add_new_transact(date, cashier):
+def add_new_transact(date, user):
     db = sqlite3.connect("pos.db")
     db.execute("PRAGMA foreign_keys = 1")
     cur = db.cursor()
@@ -194,7 +213,7 @@ def add_new_transact(date, cashier):
     while True:
         try:
             transactid = ''.join(random.choices(string.ascii_uppercase + string.digits, k=10))
-            cur.execute("INSERT INTO TRANSACTIONS VALUES(?, ?, ?)", (transactid, date, cashier))
+            cur.execute("INSERT INTO TRANSACTIONS VALUES(?, ?, ?)", (transactid, date, user))
             break
         except sqlite3.IntegrityError:
             continue
@@ -217,12 +236,12 @@ def add_prod_to_trans(trans_id, prod_id, prod_price, quantity, discount):
     db.execute("PRAGMA foreign_keys = 1")
     cur = db.cursor()
     try:
-        cur.execute("INSERT INTO contains VALUES(?, ?, ?, ?, ?)",
+        cur.execute("INSERT INTO TRANSACTED_PRODUCTS VALUES(?, ?, ?, ?, ?)",
                     (trans_id, prod_id, prod_price, quantity, discount))
     except sqlite3.IntegrityError:
-        cur.execute("SELECT item_quantity FROM contains WHERE (transact_id=? AND product_id=?)", (trans_id, prod_id))
+        cur.execute("SELECT item_quantity FROM TRANSACTED_PRODUCTS WHERE (transact_id=? AND product_id=?)", (trans_id, prod_id))
         new_quant = cur.fetchone()[0] + 1
-        cur.execute("UPDATE contains SET item_quantity=? WHERE (transact_id=? AND product_id=?)",
+        cur.execute("UPDATE TRANSACTED_PRODUCTS SET item_quantity=? WHERE (transact_id=? AND product_id=?)",
                     (new_quant, trans_id, prod_id))
     db.commit()
     db.close()
@@ -232,7 +251,7 @@ def trans_product_show(trans_id):
     db = sqlite3.connect("pos.db")
     db.execute("PRAGMA foreign_keys = 1")
     cur = db.cursor()
-    cur.execute("SELECT * FROM contains WHERE transact_id=?", (trans_id,))
+    cur.execute("SELECT * FROM TRANSACTED_PRODUCTS WHERE transact_id=?", (trans_id,))
     trans_prods = cur.fetchall()
     db.commit()
     db.close()
@@ -243,7 +262,7 @@ def clear_cart(trans_id):
     db = sqlite3.connect("pos.db")
     db.execute("PRAGMA foreign_keys = 1")
     cur = db.cursor()
-    cur.execute("DELETE FROM contains WHERE transact_id=?", (trans_id,))
+    cur.execute("DELETE FROM TRANSACTED_PRODUCTS WHERE transact_id=?", (trans_id,))
     db.commit()
     db.close()
 
@@ -252,7 +271,7 @@ def remove_prod_from_trans(trans_id, prod_id):
     db = sqlite3.connect("pos.db")
     db.execute("PRAGMA foreign_keys = 1")
     cur = db.cursor()
-    cur.execute("DELETE FROM contains WHERE (transact_id=? AND product_id=?)", (trans_id, prod_id))
+    cur.execute("DELETE FROM TRANSACTED_PRODUCTS WHERE (transact_id=? AND product_id=?)", (trans_id, prod_id))
     db.commit()
     db.close()
 
@@ -261,7 +280,7 @@ def edit_quantity(trans_id, prod_id, quantity):
     db = sqlite3.connect("pos.db")
     db.execute("PRAGMA foreign_keys = 1")
     cur = db.cursor()
-    cur.execute("UPDATE contains SET item_quantity=? WHERE (transact_id=? AND product_id=?)",
+    cur.execute("UPDATE TRANSACTED_PRODUCTS SET item_quantity=? WHERE (transact_id=? AND product_id=?)",
                 (quantity, trans_id, prod_id))
     db.commit()
     db.close()
@@ -271,7 +290,7 @@ def total_cost(trans_id):
     db = sqlite3.connect("pos.db")
     db.execute("PRAGMA foreign_keys = 1")
     cur = db.cursor()
-    cur.execute("SELECT item_subtotal FROM contains WHERE transact_id=?", (trans_id,))
+    cur.execute("SELECT item_subtotal FROM TRANSACTED_PRODUCTS WHERE transact_id=?", (trans_id,))
     stot = cur.fetchall()
     db.commit()
     db.close()
@@ -282,7 +301,7 @@ def add_discount(trans_id, prod_id, discount):
     db = sqlite3.connect("pos.db")
     db.execute("PRAGMA foreign_keys = 1")
     cur = db.cursor()
-    cur.execute("UPDATE contains SET discount=? WHERE (transact_id=? AND product_id=?)",
+    cur.execute("UPDATE TRANSACTED_PRODUCTS SET discount=? WHERE (transact_id=? AND product_id=?)",
                 (discount, trans_id, prod_id))
     db.commit()
     db.close()
@@ -318,7 +337,7 @@ def trans_show(trans_id, prod_id):
     db = sqlite3.connect("pos.db")
     db.execute("PRAGMA foreign_keys = 1")
     cur = db.cursor()
-    cur.execute("SELECT * FROM contains WHERE transact_id LIKE ? AND product_id LIKE ?",
+    cur.execute("SELECT * FROM TRANSACTED_PRODUCTS WHERE transact_id LIKE ? AND product_id LIKE ?",
                 ('%' + trans_id + '%', '%' + prod_id + '%'))
     trans_prods = cur.fetchall()
     db.commit()
@@ -330,7 +349,7 @@ def total_quantity_prod(prod_id):
     db = sqlite3.connect("pos.db")
     db.execute("PRAGMA foreign_keys = 1")
     cur = db.cursor()
-    cur.execute("SELECT item_quantity FROM contains WHERE product_id=?", (prod_id,))
+    cur.execute("SELECT item_quantity FROM TRANSACTED_PRODUCTS WHERE product_id=?", (prod_id,))
     prods = cur.fetchall()
     db.commit()
     db.close()
@@ -347,7 +366,7 @@ def tot_sales_prod(prod_id):
     db = sqlite3.connect("pos.db")
     db.execute("PRAGMA foreign_keys = 1")
     cur = db.cursor()
-    cur.execute("SELECT item_subtotal FROM contains WHERE product_id=?", (prod_id,))
+    cur.execute("SELECT item_subtotal FROM TRANSACTED_PRODUCTS WHERE product_id=?", (prod_id,))
     prods = cur.fetchall()
     db.commit()
     db.close()

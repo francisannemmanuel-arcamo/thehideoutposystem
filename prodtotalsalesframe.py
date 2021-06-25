@@ -73,4 +73,4 @@ class ProdTotalSales:
                 quant = POSdatabase.total_quantity_prod(x[0])
                 stot = POSdatabase.tot_sales_prod(x[0])
                 if quant != 0:
-                    self.prod_total_table.insert('', END, values=(x[0], x[1], x[2], quant, "{:.2f}".format(stot)))
+                    self.prod_total_table.insert('', END, values=(x[0], x[2], x[3], quant, "{:.2f}".format(stot)))

@@ -55,8 +55,9 @@ class LogIn:
         self.main_window.mainloop()
 
     def login(self):
-        if POSdatabase.log_in(self.user_input.get(), self.pass_input.get()):
-            if self.user_input.get() == "admin":
+        login = POSdatabase.log_in(self.user_input.get(), self.pass_input.get())
+        if login:
+            if login[2] == "admin":
                 if messagebox.askyesno("Administrator", "Do you want to log in to the admin-only site?"):
                     self.main_window.destroy()
                     ManagerMain()
@@ -446,10 +447,12 @@ class ManagerMain:
             return
         else:
             if messagebox.askyesno("Delete Product", "Do you wish to remove this product?"):
-                POSdatabase.delete_prod_db(prod_select[0])
-                messagebox.showinfo("Success", "Product removed in database")
-                self.display_prodsearchnamecateg()
-                return
+                if POSdatabase.delete_prod_db(prod_select[0]):
+                    messagebox.showinfo("Success", "Product removed in database")
+                    self.display_prodsearchnamecateg()
+                    return
+                else:
+                    return
             else:
                 return
 
@@ -463,7 +466,7 @@ class ManagerMain:
             return
         else:
             for x in result:
-                self.product_table.insert('', END, values=(x[0], x[1], x[2], x[3]))
+                self.product_table.insert('', END, values=(x[0], x[2], x[3], x[1]))
 
     def prod_total_sales(self):
         self.hide_widgets()
@@ -602,7 +605,6 @@ class SalesRegister:
         self.trans_reg_table.column("discount", width=100)
         self.trans_reg_table.column("subtotal", width=130)
         self.trans_reg_table.pack(fill=BOTH, expand=1)
-        self.trans_reg_table.bind("<Double-1>", self.edit_qty_frame)
 
         self.time_label = Label(sales_frame, font=("Blinker", 50, "bold"), anchor='w', bg="white")
         self.time_label.place(x=10, y=520, width=400, height=75)
@@ -691,7 +693,6 @@ class SalesRegister:
         self.prod_list.column("prod_id", width=90)
         self.prod_list.column("prod_name", width=150)
         self.prod_list.pack(fill=BOTH, expand=1)
-        self.prod_list.bind("<Double-1>", self.add_prod_dbclick)
 
         self.search_prod()
 
@@ -717,6 +718,8 @@ class SalesRegister:
             self.trans_id.set(POSdatabase.add_new_transact(trans_date, self.cash_uname))
             self.trans_code.config(text=self.trans_id.get())
             self.trans_date.config(text=trans_date)
+        self.trans_reg_table.bind("<Double-1>", self.edit_qty_frame)
+        self.prod_list.bind("<Double-1>", self.add_prod_dbclick)
         self.refresh()
         self.amount_paid.set = 0.0
 
@@ -744,7 +747,7 @@ class SalesRegister:
             return
         else:
             prod_det = POSdatabase.search_prod_db_by_id(contents['values'][0])
-            POSdatabase.add_prod_to_trans(self.trans_id.get(), prod_det[0], prod_det[3], 1, 0)
+            POSdatabase.add_prod_to_trans(self.trans_id.get(), prod_det[0], prod_det[1], 1, 0)
             self.refresh()
 
     def trans_reg_show(self):
@@ -845,7 +848,7 @@ class SalesRegister:
             return
         else:
             for prod in res_prod:
-                self.prod_list.insert('', END, values=(prod[0], prod[1]))
+                self.prod_list.insert('', END, values=(prod[0], prod[2]))
 
     def add_discount_frame(self):
         item = self.trans_reg_table.focus()

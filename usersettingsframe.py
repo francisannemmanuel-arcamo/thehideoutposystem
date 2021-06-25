@@ -19,6 +19,7 @@ class UserSettingsFrame:
         self.cash_username = StringVar()
         self.cash_pass = StringVar()
         self.cash_re_ent_pass = StringVar()
+        self.cash_role = StringVar()
 
         self.search_user = StringVar()
 
@@ -56,7 +57,7 @@ class UserSettingsFrame:
         user_list_label.place(x=10, y=5, height=40)
         srch_icon = PhotoImage(file=r"images\blacksearch.png").subsample(2, 2)
         srch_cuname_lbl = Label(user_view_table_frame, bg="#0A100d", fg="white", font=("Bebas Neue", 14),
-                                 image=srch_icon, text=" USERNAME", compound="left", anchor="w")
+                                image=srch_icon, text=" USERNAME", compound="left", anchor="w")
         srch_cuname_lbl.img = srch_icon
         srch_cuname_lbl.place(width=100, x=210, height=30, y=40)
         user_search_entry = Entry(user_view_table_frame, textvariable=self.search_user, font=("Blinker", 15),
@@ -159,6 +160,11 @@ class UserSettingsFrame:
                                       highlightthickness=2, textvariable=self.cash_re_ent_pass)
         add_re_ent_pass_entry.place(x=130, y=120, height=30, width=330)
 
+        add_role_label = Label(self.add_user_frame, text="Role",  bg="black", fg="white", font=("Bebas Neue", 13))
+        add_role_label.place(x=10, y=170, width=40, height=30)
+        roles_combo = ttk.Combobox(self.add_user_frame, textvariable=self.cash_role, font=("Bebas Neue", 13),
+                                   values=["admin", "clerk"])
+        roles_combo.place(x=50, y=170, width=100, height=30)
         add_button = Button(self.add_user_frame, command=self.add_user, text="ADD", bg="black", fg="white",
                             activebackground="black", activeforeground="white", font=("Bebas Neue", 17))
         add_button.place(x=300, y=170, height=30, width=70)
@@ -167,15 +173,18 @@ class UserSettingsFrame:
         clear_button.place(x=380, y=170, height=30, width=70)
 
     def add_user(self):
-        if self.cash_username.get() == "" or self.cash_pass.get() == "" or self.cash_re_ent_pass.get() == "":
+        if (self.cash_username.get() == "" or self.cash_pass.get() == "" or self.cash_re_ent_pass.get() == ""
+                or self.cash_role.get() == ""):
             messagebox.showerror("Add User Error", "Please fill out all fields")
             return
         elif self.cash_pass.get() != self.cash_re_ent_pass.get():
             messagebox.showerror("Add User Error", "Password do not match")
             return
         else:
+            if self.cash_role.get() == "admin":
+                messagebox.showwarning("Warning", "You are adding a user as an admin! ")
             if messagebox.askyesno("Add User", "Do you want to add the user? They can log in into the POS System."):
-                if POSdatabase.add_user_db(self.cash_username.get(), self.cash_pass.get()):
+                if POSdatabase.add_user_db(self.cash_username.get(), self.cash_pass.get(), self.cash_role.get()):
                     self.clear_data()
                     messagebox.showinfo("Add Success", "User added to database")
                     self.display_users_search()
@@ -206,6 +215,11 @@ class UserSettingsFrame:
         re_ent_pass_entry = Entry(self.edit_user_frame, font=("Blinker", 13), highlightbackground="black", show="*",
                                   highlightthickness=2, textvariable=self.cash_re_ent_pass)
         re_ent_pass_entry.place(x=130, y=120, height=30, width=330)
+        edit_role_label = Label(self.add_user_frame, text="Role", bg="black", fg="white", font=("Bebas Neue", 13))
+        edit_role_label.place(x=10, y=170, width=40, height=30)
+        roles_combo = ttk.Combobox(self.edit_user_frame, textvariable=self.cash_role, font=("Bebas Neue", 13),
+                                   values=["admin", "clerk"])
+        roles_combo.place(x=50, y=170, width=100, height=30)
 
         edit_button = Button(self.edit_user_frame, command=self.update_user, text="UPDATE", bg="black", fg="white",
                              activebackground="black", activeforeground="white", font=("Bebas Neue", 17))
@@ -215,15 +229,19 @@ class UserSettingsFrame:
         clear_button.place(x=380, y=170, height=30, width=70)
 
     def update_user(self):
-        if self.cash_username.get() == "" or self.cash_pass.get() == "" or self.cash_re_ent_pass.get() == "":
+        if (self.cash_username.get() == "" or self.cash_pass.get() == "" or self.cash_re_ent_pass.get() == ""
+                or self.cash_role.get() == ""):
             messagebox.showerror("Update User Error", "Please fill out all fields")
             return
         elif self.cash_pass.get() != self.cash_re_ent_pass.get():
             messagebox.showerror("Update User Error", "Password do not match")
             return
         else:
+            if self.cash_role.get() == "admin":
+                messagebox.showwarning("Warning", "You are adding a user as an admin! ")
             if messagebox.askyesno("Update User", "Do you want to update the user details?"):
-                if POSdatabase.update_user_db(self.rows[0], self.cash_username.get(), self.cash_pass.get()):
+                if POSdatabase.update_user_db(self.rows[0], self.cash_username.get(), self.cash_pass.get(),
+                                              self.cash_role.get()):
                     self.clear_data()
                     messagebox.showinfo("Update Success", "User information has been updated!")
                     self.rows = []
@@ -242,11 +260,13 @@ class UserSettingsFrame:
             return
         else:
             if messagebox.askyesno("Delete User", "Are you sure you want to remove this user?"):
-                POSdatabase.delete_user_db(user_select[0])
-                messagebox.showinfo("Delete Success", "User deleted in database!")
-                self.user_features()
-                self.display_users_search()
-                return
+                if POSdatabase.delete_user_db(user_select[0]):
+                    messagebox.showinfo("Delete Success", "User deleted in database!")
+                    self.user_features()
+                    self.display_users_search()
+                    return
+                else:
+                    return
             else:
                 return
 
@@ -299,7 +319,7 @@ class UserSettingsFrame:
         else:
             db = sqlite3.connect("pos.db")
             cursor = db.cursor()
-            cursor.execute("SELECT * FROM CASHIER where c_username='admin'")
+            cursor.execute("SELECT * FROM USERS where c_username='admin'")
             user = cursor.fetchone()
             if user[1] != self.admin_old_pass.get():
                 messagebox.showerror("Admin Change Password Error", "Wrong Password")
@@ -309,8 +329,8 @@ class UserSettingsFrame:
                 return
             else:
                 if messagebox.askyesno("Change Password", "Are you sure you want to modify your password?"):
-                    cursor.execute("UPDATE CASHIER SET c_pass=? WHERE c_username=?", (self.admin_new_pass.get(),
-                                                                                      'admin'))
+                    cursor.execute("UPDATE USERS SET c_pass=? WHERE c_username=?", (self.admin_new_pass.get(),
+                                                                                    'admin'))
                     messagebox.showinfo("Success", "Password has been updated!")
                     self.clear_data()
                     db.commit()
@@ -336,6 +356,7 @@ class UserSettingsFrame:
         self.cash_username.set("")
         self.cash_pass.set("")
         self.cash_re_ent_pass.set("")
+        self.cash_role.set("")
 
     def select_user(self, ev):
         cursor_row = self.user_table.focus()
