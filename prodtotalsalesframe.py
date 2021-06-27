@@ -53,7 +53,7 @@ class ProdTotalSales:
         self.prod_total_table['show'] = 'headings'
         self.prod_total_table.column("prod_id", width=160, anchor="center")
         self.prod_total_table.column("prod_name", width=300)
-        self.prod_total_table.column("prod_categ", width=215)
+        self.prod_total_table.column("prod_categ", width=215, anchor="center")
         self.prod_total_table.column("prod_qty", width=170, anchor="center")
         self.prod_total_table.column("prod_sales", width=170, anchor="center")
         self.prod_total_table.pack(fill=BOTH, expand=1)

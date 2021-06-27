@@ -72,6 +72,6 @@ class SalesHistory:
         else:
             for ent in sales:
                 trans_det = POSdatabase.trans_details(ent[0])[1]
-                prod_name = POSdatabase.search_prod_db_by_id(ent[1])[1]
+                prod_name = POSdatabase.search_prod_db_by_id(ent[1])[2]
                 self.sales_table.insert('', END, values=(ent[0], trans_det, ent[1], prod_name, "{:.2f}".format(ent[2]),
                                                          ent[3], "{:.2f}".format(ent[5])))
